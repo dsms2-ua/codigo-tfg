@@ -47,17 +47,47 @@ plt.savefig("imagen1.png", bbox_inches='tight')
 plt.close()
 
 # Figura 2: Distribución por compás
-fig, axes = plt.subplots(1, 2, figsize=(6, 4))
-for ax, df, label, color in [(axes[0], alto, 'Alto', ALTO_COLOR), (axes[1], tenor, 'Tenor', TENOR_COLOR)]:
-    vc = df['MEASURE'].value_counts()
-    top5 = vc.head(5)
-    otros = vc.iloc[5:].sum()
-    labels = list(top5.index) + ['Otros']
-    sizes = list(top5.values) + [otros]
-    colors_pie = [color] + [plt.cm.Blues(0.3 + 0.12*i) for i in range(4)] + [GRIS]
-    wedges, texts, autotexts = ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors_pie[:len(labels)], pctdistance=0.78, textprops={'fontsize': 9})
-    ax.set_title(f'Compás - {label}')
+# Usamos el mismo tamaño exacto de la Figura 4 (6x4)
+fig, ax = plt.subplots(figsize=(6, 4))
 
+# Procesar los datos de la misma forma
+vc = alto['MEASURE'].value_counts()
+top5 = vc.head(5)
+otros = vc.iloc[5:].sum()
+
+labels = list(top5.index) + ['Otros']
+sizes = list(top5.values) + [otros]
+
+# Calcular porcentajes para el eje X
+total = sum(sizes)
+percentages = [(s / total) * 100 for s in sizes]
+
+y_pos = range(len(labels))
+
+# Dibujamos las barras con TENOR_COLOR y el mismo edgecolor='white' de tu histograma
+# Ajustamos height a 0.75 para que las barras sean grandes y tengan presencia
+bars = ax.barh(y_pos, percentages, color=TENOR_COLOR, edgecolor='white', height=0.75)
+
+# Configurar etiquetas de los ejes con el mismo estilo directo
+ax.set_yticks(y_pos)
+ax.set_yticklabels(labels)
+ax.invert_yaxis()  # El compás más frecuente arriba
+
+# Etiquetas de los ejes y título (mismo formato que tu Figura 4)
+ax.set_xlabel('Porcentaje (%)')
+ax.set_ylabel('Compás')
+ax.set_title('Distribución por Compás')
+
+# Añadir el texto del porcentaje al final de cada barra de forma limpia
+for bar in bars:
+    width = bar.get_width()
+    ax.text(width + 1.5, bar.get_y() + bar.get_height()/2, f'{width:.1f}%', 
+            va='center', ha='left')
+
+# Dejar margen a la derecha para que no se corten los números del porcentaje
+ax.set_xlim(0, max(percentages) + 12)
+
+# Guardar y cerrar idéntico a tus otras figuras
 plt.tight_layout()
 plt.savefig("imagen2.pdf", bbox_inches='tight')
 plt.savefig("imagen2.png", bbox_inches='tight')
